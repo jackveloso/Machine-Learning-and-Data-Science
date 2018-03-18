@@ -30,6 +30,15 @@ class NeuralNetwork:
             a = self.activation(a0, type)
         return a0
 
+    def backprop(self, x, y):
+        pass
+
+    def SGD(self, X_train, epochs, mini_batch_size, eta):
+        pass
+
+    def update_batch(self, batch, eta):
+        pass
+
     def draw(self):
         Ws = self.Weights
         layers = self.sizes
