@@ -34,7 +34,7 @@ class LinearRegression:
             # updating the weights and bias
             self.W = self.W - learningrate * grad_W
             self.b = self.b - learningrate * grad_b
-        return costs
+        return self.W, self.b, costs
 
     def train_normal_equation(self, X, y):
         """
@@ -53,7 +53,7 @@ plt.title("Dataset")
 plt.xlabel("x")
 plt.ylabel("y")
 t = LinearRegression()
-t.train_gradient_descent(X, y, learningrate=0.1, n_iterations=200)
+weights, bias, costs = t.train_gradient_descent(X, y, learningrate=0.1, n_iterations=200)
 xx = np.linspace(0, 2, num=100)
 plt.scatter(xx, t.W*xx + t.b)
 plt.show()
