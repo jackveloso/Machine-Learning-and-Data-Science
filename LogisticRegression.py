@@ -55,11 +55,12 @@ M2 = np.c_[4 + 0.3*np.random.randn(200, 1),
            1 + 0.3*np.random.randn(200, 1),
            np.zeros((200, 1))]
 M = np.r_[M1, M2]
+X = M[:, 0:2]
+y = M[:, 2]
 # plotting the training blops
 fig = plt.figure(figsize=(8, 6))
-plt.scatter(M[0:200, 0], M[0:200, 1])
-plt.scatter(M[200:400, 0], M[200:400, 1])
-plt.title("Dataset")
+plt.scatter(X[:, 0], X[:, 1], c=y)
+plt.title("2 Random Blops")
 plt.xlabel("x_1")
 plt.ylabel("x_2")
 plt.show(block=False)
