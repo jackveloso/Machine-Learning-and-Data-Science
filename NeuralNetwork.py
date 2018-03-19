@@ -8,6 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle, ConnectionPatch
 from sklearn.datasets import make_blobs
+from sklearn.datasets import make_circles
 
 
 class NeuralNetwork:
@@ -121,7 +122,7 @@ class NeuralNetwork:
             batches = [data_train[k:k+mini_batch_size]
                        for k in range(0, m, mini_batch_size)]
             for batch in batches:
-                self.update(self, batch, eta)
+                self.update(batch, eta)
 
     def draw(self):
         """
@@ -169,45 +170,68 @@ class NeuralNetwork:
         ax.add_artist(dot)
         plt.show()
 
+def example1():
+    np.random.seed(15)
+    NN = NeuralNetwork([2, 4, 2, 1])
+    X, y = make_blobs(n_samples=500, centers=2)
+    x_test = X[:100, :]
+    y_test = y[:100]
+    x_train = X[100:, :]
+    y_train = y[100:]
+    data = list(zip(x_train, y_train))
+    fig = plt.figure(figsize=(8, 6))
+    plt.ion()
+    for i in range(1000):
+        NN.update(data, 0.03)
+        #NN.SGD(data, epochs=1, mini_batch_size=20, eta=0.03)
+        if (i+1) % 100 == 0:
+            print("Train loss at iteration {iter} is : {loss}".format(iter=i+1, loss=NN.lossfunction(data)))
+            pred = NN.feedbatch(x_test)
+            t = 0.5
+            b = pred < t
+            pos = b[:, 0]
+            neg = (pos == False)
+            plt.clf()
+            plt.title("After iteration "+str(i+1))
+            plt.xlabel("x_1")
+            plt.ylabel("x_2")
+            plt.scatter(x_train[:, 0], x_train[:, 1], c=y_train)
+            plt.scatter(x_test[pos, 0], x_test[pos, 1])
+            plt.scatter(x_test[neg, 0], x_test[neg, 1])
+            plt.pause(0.05)
+            plt.show()
 
-np.random.seed(123)
-NN = NeuralNetwork([2, 4, 6, 1])
-X, y = make_blobs(n_samples=200, centers=2)
-data = list(zip(X, y))
-X_test = np.c_[-2+0.6*np.random.randn(200, 1),
-               0 + 0.6*np.random.randn(200, 1)]
-fig = plt.figure(figsize=(8, 6))
-plt.ion()
-for i in range(700):
-    NN.update(data, 0.01)
-    if (i+1) % 100 == 0:
-        print("Loss at iteration {iter} is : {loss}".format(iter=i+1, loss=NN.lossfunction(data)))
-        pred = NN.feedbatch(X_test)
-        t = 0.5
-        b = pred < t
-        pos = b[:, 0]
-        neg = (pos == False)
-        plt.clf()
-        plt.title("After iteration "+str(i+1))
-        plt.xlabel("x_1")
-        plt.ylabel("x_2")
-        plt.scatter(X[:, 0], X[:, 1], c=y)
-        plt.scatter(X_test[pos, 0], X_test[pos, 1])
-        plt.scatter(X_test[neg, 0], X_test[neg, 1])
-        plt.pause(0.005)
-        plt.show()
+def example2():
+    np.random.seed(123)
+    NN = NeuralNetwork([2, 6, 1])
+    X, y = make_circles(n_samples=1000, factor=0.5, noise=.1)
+    x_test = X[:200, :]
+    y_test = y[:200]
+    x_train = X[200:, :]
+    y_train = y[200:]
+    data = list(zip(x_train, y_train))
+    fig = plt.figure(figsize=(8, 6))
+    plt.ion()
+    for i in range(2000):
+        NN.update(data, 0.03)
+        #NN.SGD(data, epochs=1, mini_batch_size=10, eta=0.01)
+        if (i+1) % 100 == 0:
+            print("Loss at iteration {iter} is : {loss}".format(iter=i+1, loss=NN.lossfunction(data)))
+            pred = NN.feedbatch(x_test)
+            t = 0.5
+            b = pred < t
+            pos = b[:, 0]
+            neg = (pos == False)
+            plt.clf()
+            plt.title("After iteration "+str(i+1))
+            plt.xlabel("x_1")
+            plt.ylabel("x_2")
+            plt.scatter(x_train[:, 0], x_train[:, 1], c=y_train)
+            plt.scatter(x_test[pos, 0], x_test[pos, 1])
+            plt.scatter(x_test[neg, 0], x_test[neg, 1])
+            plt.pause(0.005)
+            plt.show()
 
-# Testing the classifier
-pred = NN.feedbatch(X_test)
-t = 0.5
-b = pred < t
-pos = b[:, 0]
-neg = (pos == False)
-fig = plt.figure(figsize=(8, 6))
-plt.title("Dataset")
-plt.xlabel("x_1")
-plt.ylabel("x_2")
-plt.scatter(X[:, 0], X[:, 1], c=y)
-plt.scatter(X_test[pos, 0], X_test[pos, 1])
-plt.scatter(X_test[neg, 0], X_test[neg, 1])
-plt.show()
+
+
+example1()
