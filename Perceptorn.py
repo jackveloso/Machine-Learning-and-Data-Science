@@ -10,11 +10,7 @@ class Perceptron:
     def heavyside(self, x):
         return np.array([1 if elem >= 0 else 0 for elem in x])[:, np.newaxis]
 
-    def errorfunction(self, X, y):
-        return 100
-
-    def train_perceptron(self, X, y, learningrate=0.1, n_iterations=100):
-        costs = []
+    def train(self, X, y, learningrate=0.1, n_iterations=100):
         n_samples, n_features = X.shape
         self.W = np.zeros((n_features, 1))
         self.b = 0
