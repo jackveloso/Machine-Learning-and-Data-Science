@@ -40,9 +40,8 @@ class NeuralNetwork:
         return z, activations, zs
 
     def feedbatch(self, batch, type='sigmoid'):
-        batch_length = len(batch)
-        predictions = np.zeros((batch_length, 1))
-        for i in range(batch_length):
+        predictions = np.zeros((len(batch), 1))
+        for i in range(len(batch)):
             prediction, _, _ = self.forwardpass(batch[i, :], type)
             predictions[i] = prediction
         return predictions
@@ -124,6 +123,35 @@ class NeuralNetwork:
             for batch in batches:
                 self.update(batch, eta)
 
+    def train(self, data_train, data_test, epochs=100, eta=0.01):
+        '''
+        Trains the NN
+        '''
+        x_test = np.array([x for x, y in data_test])
+        x_train = np.array([x for x, y in data_train])
+        y_train = np.array([y for x, y in data_train])
+        fig = plt.figure(figsize=(8, 6))
+        plt.ion()
+        for i in range(epochs):
+            self.update(data_train, eta)
+            #NN.SGD(data, epochs=1, mini_batch_size=20, eta=0.03)
+            if (i+1) % 100 == 0:
+                print("Iteration: {iter:<5} | Training error: {losstrain:<6} | Test error: {losstest:<6}".format(iter=i+1, losstrain=round(self.lossfunction(data_train), 4), losstest=round(self.lossfunction(data_test), 4)))
+                pred = self.feedbatch(x_test)
+                t = 0.5
+                b = pred < t
+                pos = b[:, 0]
+                neg = (pos == False)
+                plt.clf()
+                plt.title("After iteration "+str(i+1))
+                plt.xlabel("x_1")
+                plt.ylabel("x_2")
+                plt.scatter(x_train[:, 0], x_train[:, 1], c=y_train)
+                plt.scatter(x_test[pos, 0], x_test[pos, 1])
+                plt.scatter(x_test[neg, 0], x_test[neg, 1])
+                plt.pause(0.005)
+                plt.show()
+
     def draw(self):
         """
         Visualization of the neural network
@@ -170,6 +198,7 @@ class NeuralNetwork:
         ax.add_artist(dot)
         plt.show()
 
+
 def example1():
     np.random.seed(15)
     NN = NeuralNetwork([2, 4, 2, 1])
@@ -178,60 +207,23 @@ def example1():
     y_test = y[:100]
     x_train = X[100:, :]
     y_train = y[100:]
-    data = list(zip(x_train, y_train))
-    fig = plt.figure(figsize=(8, 6))
-    plt.ion()
-    for i in range(1000):
-        NN.update(data, 0.03)
-        #NN.SGD(data, epochs=1, mini_batch_size=20, eta=0.03)
-        if (i+1) % 100 == 0:
-            print("Train loss at iteration {iter} is : {loss}".format(iter=i+1, loss=NN.lossfunction(data)))
-            pred = NN.feedbatch(x_test)
-            t = 0.5
-            b = pred < t
-            pos = b[:, 0]
-            neg = (pos == False)
-            plt.clf()
-            plt.title("After iteration "+str(i+1))
-            plt.xlabel("x_1")
-            plt.ylabel("x_2")
-            plt.scatter(x_train[:, 0], x_train[:, 1], c=y_train)
-            plt.scatter(x_test[pos, 0], x_test[pos, 1])
-            plt.scatter(x_test[neg, 0], x_test[neg, 1])
-            plt.pause(0.05)
-            plt.show()
+    data_train = list(zip(x_train, y_train))
+    data_test = list(zip(x_test, y_test))
+    NN.train(data_train, data_test, epochs=1000, eta=0.03)
+
 
 def example2():
     np.random.seed(123)
-    NN = NeuralNetwork([2, 6, 1])
-    X, y = make_circles(n_samples=1000, factor=0.5, noise=.1)
+    NN = NeuralNetwork([2, 4, 4, 1])
+    X, y = make_circles(n_samples=1000, factor=0.5, noise=.01)
     x_test = X[:200, :]
     y_test = y[:200]
     x_train = X[200:, :]
     y_train = y[200:]
-    data = list(zip(x_train, y_train))
-    fig = plt.figure(figsize=(8, 6))
-    plt.ion()
-    for i in range(2000):
-        NN.update(data, 0.03)
-        #NN.SGD(data, epochs=1, mini_batch_size=10, eta=0.01)
-        if (i+1) % 100 == 0:
-            print("Loss at iteration {iter} is : {loss}".format(iter=i+1, loss=NN.lossfunction(data)))
-            pred = NN.feedbatch(x_test)
-            t = 0.5
-            b = pred < t
-            pos = b[:, 0]
-            neg = (pos == False)
-            plt.clf()
-            plt.title("After iteration "+str(i+1))
-            plt.xlabel("x_1")
-            plt.ylabel("x_2")
-            plt.scatter(x_train[:, 0], x_train[:, 1], c=y_train)
-            plt.scatter(x_test[pos, 0], x_test[pos, 1])
-            plt.scatter(x_test[neg, 0], x_test[neg, 1])
-            plt.pause(0.005)
-            plt.show()
+    data_train = list(zip(x_train, y_train))
+    data_test = list(zip(x_test, y_test))
+    NN.train(data_train, data_test, epochs=1000, eta=0.05)
 
 
 
-example1()
+example2()
