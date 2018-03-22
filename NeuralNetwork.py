@@ -22,7 +22,7 @@ class NeuralNetwork:
                         for m, n in zip(sizes[1:], sizes[:-1])]
         self.bias = [np.random.randn(m, 1) for m in sizes[1:]]
 
-    def forwardpass(self, input, type='sigmoid'):
+    def forwardpass(self, input):
         """
         Does a forwardpass on ``input`` and returns all the activations
         """
@@ -34,15 +34,15 @@ class NeuralNetwork:
             z = input
         for W, b in zip(self.Weights, self.bias):
             z = np.dot(W, z) + b
-            a = self.activation(z, type)
+            a = self.activation(z)
             activations.append(a)
             zs.append(z)
         return z, activations, zs
 
-    def feedbatch(self, batch, type='sigmoid'):
+    def feedbatch(self, batch):
         predictions = np.zeros((len(batch), 1))
         for i in range(len(batch)):
-            prediction, _, _ = self.forwardpass(batch[i, :], type)
+            prediction, _, _ = self.forwardpass(batch[i, :])
             predictions[i] = prediction
         return predictions
 
@@ -62,7 +62,7 @@ class NeuralNetwork:
         grads_b[-1] = delta
         for l in range(2, self.num_layers):
             delta = np.dot(self.Weights[-l+1].T, delta)  \
-                    * self.sigmoid_prime(zs[-l])
+                    * self.activation_prime(zs[-l])
             grads_b[-l] = delta
             grads_W[-l] = np.dot(delta, activations[-l-1].T)
         return grads_W, grads_b
@@ -82,24 +82,38 @@ class NeuralNetwork:
         self.bias = [b - (eta/len(data)) * nb
                      for b, nb in zip(self.bias, nabla_b)]
 
-    def activation(self, x, type='sigmoid'):
+    def activation(self, x):
         """
         Returns the activation of input x, where ``type`` denotes which
         activaion function we use (e.g. sigmoid, relu, etc..)
         """
-        if type == 'sigmoid':
-            # return [1/(1+np.exp(-item)) for item in x]
+        if self.type == 'sigmoid':
             return 1/(1+np.exp(-x))
-        elif type == 'relu':
-            return [item if item >= 0 else 0 for item in x]
-        elif type == 'heavyside':
-            return [1 if item >= 0 else 0 for item in x]
+        elif self.type == 'relu':
+            op = lambda t: t if t >= 0 else 0
+            vfunc = np.vectorize(op)
+            return vfunc(x)
+        elif self.type == 'heavyside':
+            op = lambda t: 1 if t >= 0 else 0
+            vfunc = np.vectorize(op)
+            return vfunc(x)
+        elif self.type == 'tanh':
+            return 2/(1+np.exp(-2*x))-1
 
-    def sigmoid_prime(self, x):
+    def activation_prime(self, x):
         """
         Derivative of the sigmoid function
         """
-        return self.activation(x) * (1 - self.activation(x))
+        if self.type == 'sigmoid':
+            return self.activation(x) * (1 - self.activation(x))
+        elif self.type == 'relu':
+            op = lambda t: 1 if t > 0 else 0
+            vfunc = np.vectorize(op)
+            return vfunc(x)
+        elif self.type == 'heavyside':
+            return 0
+        elif self.type == 'tanh':
+            return 1-self.activation(x)**2
 
     def lossfunction(self, data, type='LS'):
         '''
@@ -120,21 +134,25 @@ class NeuralNetwork:
             np.random.shuffle(data_train)
             batches = [data_train[k:k+mini_batch_size]
                        for k in range(0, m, mini_batch_size)]
+            batches = [batches[0]]
             for batch in batches:
                 self.update(batch, eta)
 
-    def train(self, data_train, data_test, epochs=100, eta=0.01):
+    def train(self, data_train, data_test, epochs=100, eta=0.01, mini_batch_size=0, type='sigmoid'):
         '''
         Trains the NN
         '''
+        self.type = type
+        if mini_batch_size == 0:
+            mini_batch_size = len(data_train)
         x_test = np.array([x for x, y in data_test])
         x_train = np.array([x for x, y in data_train])
         y_train = np.array([y for x, y in data_train])
         fig = plt.figure(figsize=(8, 6))
         plt.ion()
         for i in range(epochs):
-            self.update(data_train, eta)
-            #NN.SGD(data, epochs=1, mini_batch_size=20, eta=0.03)
+            #self.update(data_train, eta)
+            self.SGD(data_train, epochs=1, mini_batch_size=mini_batch_size, eta=eta)
             if (i+1) % 100 == 0:
                 print("Iteration: {iter:<5} | Training error: {losstrain:<6} | Test error: {losstest:<6}".format(iter=i+1, losstrain=round(self.lossfunction(data_train), 4), losstest=round(self.lossfunction(data_test), 4)))
                 pred = self.feedbatch(x_test)
@@ -209,20 +227,22 @@ def example1():
     y_train = y[100:]
     data_train = list(zip(x_train, y_train))
     data_test = list(zip(x_test, y_test))
-    NN.train(data_train, data_test, epochs=1000, eta=0.03)
+    NN.train(data_train, data_test, epochs=1000, eta=0.03,
+             mini_batch_size=100, type='sigmoid')
 
 
 def example2():
     np.random.seed(123)
-    NN = NeuralNetwork([2, 4, 4, 1])
-    X, y = make_circles(n_samples=1000, factor=0.5, noise=.01)
+    NN = NeuralNetwork([2, 8, 4, 1])
+    X, y = make_circles(n_samples=1000, factor=0.5, noise=.05)
     x_test = X[:200, :]
     y_test = y[:200]
     x_train = X[200:, :]
     y_train = y[200:]
     data_train = list(zip(x_train, y_train))
     data_test = list(zip(x_test, y_test))
-    NN.train(data_train, data_test, epochs=1000, eta=0.05)
+    NN.train(data_train, data_test, epochs=10000, eta=0.01,
+             mini_batch_size=256, type='tanh')
 
 
 
