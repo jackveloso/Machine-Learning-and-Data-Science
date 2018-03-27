@@ -7,7 +7,7 @@ from sklearn.datasets import make_blobs
 def kNN(input, data, labels, k, weights=[]):
     '''
     Return the k-nearest-neighbour classification with respect to ``data``
-    of ``input``. If ``weights`` is empty, then it computes the classical kNN.
+    of ``input``. If ``weights`` is empty, then compute the classical kNN.
     '''
     if k > len(data):
         raise NameError('k is larger than the size of the data')
