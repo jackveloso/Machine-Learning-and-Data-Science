@@ -134,7 +134,7 @@ class NeuralNetwork:
             np.random.shuffle(data_train)
             batches = [data_train[k:k+mini_batch_size]
                        for k in range(0, m, mini_batch_size)]
-            batches = [batches[0]]
+            #batches = [batches[0]]
             for batch in batches:
                 self.update(batch, eta)
 
