@@ -1,7 +1,6 @@
 """
 Implementation of a simple feed forward neural network module in almost plain
-python (except tensorflow, pyplot). Inspired by Michel Nielsen's book,
-www.neuralnetworksanddeeplearning.com
+python (pyplot, matplotlib).
 """
 
 import numpy as np
@@ -14,7 +13,7 @@ from sklearn.datasets import make_circles
 class NeuralNetwork:
     def __init__(self, sizes):
         """
-        Initialization of the random weights and bias'
+        Initialization of the random weights and biases.
         """
         self.sizes = sizes
         self.num_layers = len(sizes)
@@ -24,7 +23,7 @@ class NeuralNetwork:
 
     def forwardpass(self, input):
         """
-        Does a forwardpass on ``input`` and returns all the activations
+        Does a forwardpass on ``input`` and returns all the activations.
         """
         activations = []
         zs = []
@@ -40,6 +39,10 @@ class NeuralNetwork:
         return z, activations, zs
 
     def feedbatch(self, batch):
+        """
+        Feeds a batch into the neural network and returns all its forwardpasses
+        of each element in the batch.
+        """
         predictions = np.zeros((len(batch), 1))
         for i in range(len(batch)):
             prediction, _, _ = self.forwardpass(batch[i, :])
@@ -49,7 +52,7 @@ class NeuralNetwork:
     def backprop(self, x, y):
         '''
         Returns the gradients of the lossfunction with respect to the weights
-        and bias'
+        and biases via backpropagation.
         '''
         if np.array(x).shape == (len(x), ):
             x = np.array([x]).T
@@ -69,7 +72,8 @@ class NeuralNetwork:
 
     def update(self, data, eta=0.01):
         """
-        Updates the weights and bias' using gradient descent and backprop.
+        Updates the weights and biases with learningrate=``eta`` using gradient
+        descent and backprop.
         """
         nabla_b = [np.zeros(b.shape) for b in self.bias]
         nabla_w = [np.zeros(w.shape) for w in self.Weights]
@@ -84,8 +88,8 @@ class NeuralNetwork:
 
     def activation(self, x):
         """
-        Returns the activation of input x, where ``type`` denotes which
-        activaion function we use (e.g. sigmoid, relu, etc..)
+        Returns the activation of input x, where ``self.type`` denotes which
+        activaion function we use (e.g. sigmoid, relu, etc..).
         """
         if self.type == 'sigmoid':
             return 1/(1+np.exp(-x))
@@ -102,7 +106,7 @@ class NeuralNetwork:
 
     def activation_prime(self, x):
         """
-        Derivative of the sigmoid function
+        Derivative of the activation function.
         """
         if self.type == 'sigmoid':
             return self.activation(x) * (1 - self.activation(x))
@@ -117,7 +121,7 @@ class NeuralNetwork:
 
     def lossfunction(self, data, type='LS'):
         '''
-        Returns the loss on a given data set ``data``
+        Returns the loss on a given data set ``data``.
         '''
         loss = 0
         for x, y in data:
@@ -125,7 +129,7 @@ class NeuralNetwork:
             loss = loss + np.dot(x_predict-y, x_predict-y)
         return float(1/len(data) * loss)
 
-    def SGD(self, data_train, epochs=100, mini_batch_size=16, eta=0.01):
+    def SGD(self, data_train, epochs=100, mini_batch_size=1, eta=0.01):
         '''
         Stochastic gradient descent (i.e mini_batch_size = 1) or minibatch SGD
         '''
@@ -134,13 +138,14 @@ class NeuralNetwork:
             np.random.shuffle(data_train)
             batches = [data_train[k:k+mini_batch_size]
                        for k in range(0, m, mini_batch_size)]
-            #batches = [batches[0]]
+            # batches = [batches[0]]
             for batch in batches:
                 self.update(batch, eta)
 
-    def train(self, data_train, data_test, epochs=100, eta=0.01, mini_batch_size=0, type='sigmoid'):
+    def train(self, data_train, data_test, epochs=100, eta=0.01,
+              mini_batch_size=0, type='sigmoid'):
         '''
-        Trains the NN
+        Trains the NeuralNetwork
         '''
         self.type = type
         if mini_batch_size == 0:
@@ -172,7 +177,7 @@ class NeuralNetwork:
 
     def draw(self):
         """
-        Visualization of the neural network
+        Visualization of the neural network.
         """
         Ws = self.Weights
         layers = self.sizes
@@ -227,7 +232,7 @@ def example1():
     y_train = y[100:]
     data_train = list(zip(x_train, y_train))
     data_test = list(zip(x_test, y_test))
-    NN.train(data_train, data_test, epochs=1000, eta=0.03,
+    NN.train(data_train, data_test, epochs=600, eta=0.03,
              mini_batch_size=100, type='sigmoid')
 
 
@@ -241,9 +246,9 @@ def example2():
     y_train = y[200:]
     data_train = list(zip(x_train, y_train))
     data_test = list(zip(x_test, y_test))
-    NN.train(data_train, data_test, epochs=10000, eta=0.01,
+    NN.train(data_train, data_test, epochs=600, eta=0.01,
              mini_batch_size=256, type='tanh')
 
 
 
-example2()
+example1()
